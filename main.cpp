@@ -2,11 +2,13 @@
 #include <vector>
 #include <iomanip>
 
-struct Matrix {
+class Matrix {
+private:
     int rows{};
     int cols{};
     std::vector<double> mat;
 
+public:
     Matrix(const int r, const int c, const std::initializer_list<double>& values)
         : rows{r}, cols{c}, mat{values}
     {}
@@ -17,121 +19,98 @@ struct Matrix {
         : rows{r}, cols{c}, mat(r*c,0)
     {}
 
-    [[nodiscard]] double get(const int row, const int col) const{
-        return mat[row*cols+col];
-    }
-    void set(int row, int col, double val) {
-        mat[row*cols+col] = val;
-    }
-
-    void print() const{
-        for (int i {}; i < rows; ++i) {
-            for (int j{}; j< cols; ++j) {
-                std::cout << std::setw(4) << get(i,j);
-            }
-            std::cout << '\n';
-        }
-        std::cout << '\n';
-    }
-
+    //general purpose functions -----------------------------------
     [[nodiscard]] int size() const{
         return static_cast<int>(mat.size());
     }
-
-    [[nodiscard]] Matrix add(const Matrix& mat2) const{
-        if ((cols != mat2.cols) || (rows != mat2.rows)){
-            throw std::invalid_argument("Matrices must be the same size for element-wise addition!");
-        }
-        Matrix res {rows,cols};
-        for (int i{};i < size(); ++i) {
-            res.mat[i] = mat[i]+mat2.mat[i];
-        }
-        return res;
+    //general purpose functions -----------------------------------
+    [[nodiscard]] int num_rows() const{
+        return rows;
     }
-    [[nodiscard]] Matrix subtract(const Matrix& mat2) const{
-        if ((cols != mat2.cols) || (rows != mat2.rows)){
-            throw std::invalid_argument("Matrices must be the same size for element-wise subtraction!");
-        }
-        Matrix res {rows,cols};
-        for (int i{};i < size(); ++i) {
-            res.mat[i] = mat[i]-mat2.mat[i];
-        }
-        return res;
+    //general purpose functions -----------------------------------
+    [[nodiscard]] int num_cols() const{
+        return cols;
     }
 
-    [[nodiscard]] Matrix scalar_multiply(const double scale) const{
-        Matrix res(rows,cols);
-        for (int i{}; i < size();i++) {
-            res.mat[i] = mat[i] * scale;
-        }
-        return res;
+    // const indexing, allows indexing const matrices
+    const double& operator()(const int row,const int column) const{
+        return mat[row*cols+column];
+    }
+    double& operator()(const int row, const int column) {
+        return mat[row*cols+column];
     }
 
-    [[nodiscard]] Matrix multiply(const Matrix& mat2) const{
-        if (cols != mat2.rows) {
-            throw std::invalid_argument("The dimensions of mat1 and mat2 are mismatched!");
-        }
-        Matrix result(rows,mat2.cols);
+    // arithmetic on matrices -------------------------------------
 
-        for (int i{}; i < rows; ++i) {
-            for (int j{}; j < mat2.cols; ++j) {
-                for (int k{}; k < cols; ++k) {
-                    result.mat[i * mat2.cols + j] += get(i, k) * mat2.get(k, j);
+    // add and subtract
+    [[nodiscard]] Matrix operator+(const Matrix& b) const{
+        if (rows != b.rows || cols != b.cols) {
+            throw std::invalid_argument("ERROR: Matrices are not of compatible size!\n");
+        }
+        Matrix result(rows,cols);
+        for (int i{}; i < size();++i) {
+            result.mat[i] = mat[i] + b.mat[i];
+        }
+        return result;
+    }
+    [[nodiscard]] Matrix operator-(const Matrix& b) const{
+        if (rows != b.rows || cols != b.cols) {
+            throw std::invalid_argument("ERROR: Matrices are not of compatible size!\n");
+        }
+        Matrix result(rows,cols);
+        for (int i{}; i < size();++i) {
+            result.mat[i] = mat[i] - b.mat[i];
+        }
+        return result;
+    }
+    // scalar multiply
+    [[nodiscard]] Matrix operator*(const double scale) const {
+        Matrix result(rows,cols);
+        for (int i{};i < size();++i) {
+            result.mat[i] = mat[i] * scale;
+        }
+        return result;
+    }
+    [[nodiscard]] Matrix operator*(const Matrix& b) const {
+        if ((cols != b.rows)) {
+            throw std::invalid_argument("ERROR: Matrix dimensions are mismatched!\n");
+        }
+        Matrix result(rows,b.cols);
+        for (int i{};i < rows;++i) {
+            for (int j{};j < b.cols;++j) {
+                for (int k{}; k < cols;++k) {
+                    result(i,j) += (*this)(i,k) * b(k,j);
                 }
             }
         }
+
         return result;
     }
 };
 
+Matrix operator*(const double scale, const Matrix& mat) {
+    return mat * scale;
+}
+
+std::ostream& operator<<(std::ostream& out, const Matrix& mat){
+    for (int i {}; i < mat.num_rows(); ++i) {
+        for (int j{}; j< mat.num_cols(); ++j) {
+            out << std::setw(4) << mat(i,j);
+        }
+        out << '\n';
+    }
+    out << '\n';
+    return out;
+}
 
 int main() {
-    int rows = 2, cols = 2;
-    std::vector<double> a_in = {1, 2,
-                             3, 4};
-    Matrix a(2,2,a_in);
-    std::vector<double> b_in = {5, 6,
-                             7, 8};
-    Matrix b(2,2,b_in);
+    Matrix A(2, 2, {1, 2, 3, 4});
+    Matrix B(2, 2, {5, 6, 7, 8});
 
-    std::cout << "A:\n";
-    a.print();
-
-    std::cout << "B:\n";
-    b.print();
-
-    std::cout << "A + B:\n";
-    auto sum = a.add(b);
-    sum.print();
-
-    std::cout << "A - B:\n";
-    auto diff = a.subtract(b);
-    diff.print();
-
-    std::cout << "A * 3:\n";
-    auto scaled = a.scalar_multiply(3);
-    scaled.print();
-
-    std::cout << "A * B:\n";
-    auto product = a.multiply(b);
-    product.print();
-
-    // non-square test
-    Matrix c{2, 3, {1, 2, 3,
-                    4, 5, 6}};
-
-    Matrix d{3, 2, {7,  8,
-                    9,  10,
-                    11, 12}};
-
-    std::cout << "C (2x3):\n";
-    c.print();
-
-    std::cout << "D (3x2):\n";
-    d.print();
-
-    std::cout << "C * D:\n";
-    c.multiply(d).print();
+    std::cout << "A + B:\n" << A + B << '\n';
+    std::cout << "A * B:\n" << A * B << '\n';
+    std::cout << "A * 3:\n" << A * 3 << '\n';
+    std::cout << "A(0,1) = " << A(0, 1) << '\n';
 
     return 0;
 }
