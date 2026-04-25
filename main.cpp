@@ -2,10 +2,29 @@
 #include <vector>
 #include <iomanip>
 
+template <typename T>
+bool approx_equal(T a, T b) {
+    static_assert(std::is_floating_point_v<T>, "approx_equal only accepts floating point types!");
+
+    double acceptable_precision {1e-13};
+    // If the numbers are extremely close to zero, we can assume that they are so close that it's a rounding error
+    if ((std::abs(a) < acceptable_precision) && (std::abs(b) < acceptable_precision)) {
+        return true;
+    }
+
+    // For other numbers we check based on the acceptable precision
+    if (std::abs(a-b) > acceptable_precision * std::max(std::abs(a),std::abs(b))) {
+        return false;
+    }
+
+    return true;
+}
+
 class Matrix {
 private:
     int rows{};
     int cols{};
+    double epsilon{std::numeric_limits<double>::epsilon()};
     std::vector<double> mat;
 
 public:
@@ -18,7 +37,9 @@ public:
     Matrix(const int r, const int c)
         : rows{r}, cols{c}, mat(r*c,0)
     {}
-
+    Matrix(const Matrix& a)
+        : rows{a.rows}, cols{a.cols}, mat{a.mat}
+    {}
     //general purpose functions -----------------------------------
     [[nodiscard]] int size() const{
         return static_cast<int>(mat.size());
@@ -42,7 +63,7 @@ public:
 
     // arithmetic on matrices -------------------------------------
 
-    // add and subtract
+    // Operator overloads
     [[nodiscard]] Matrix operator+(const Matrix& b) const{
         if (rows != b.rows || cols != b.cols) {
             throw std::invalid_argument("ERROR: Matrices are not of compatible size!\n");
@@ -83,9 +104,33 @@ public:
                 }
             }
         }
-
         return result;
     }
+    bool operator==(const Matrix& b) const {
+        if ((b.rows != rows) || (b.cols != cols)) {
+            return false;
+        }
+        for (int i{}; i < size(); ++i) {
+            if (!approx_equal(mat[i],b.mat[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // transpose
+    [[nodiscard]] Matrix transpose() const {
+        Matrix result(cols,rows);
+        // loop through the rows, turn them into columns
+        for (int i{}; i<rows; ++i) {
+            for (int j{};j < cols;++j) {
+                result(j,i) = (*this)(i,j);
+            }
+        }
+        return result;
+    }
+
 };
 
 Matrix operator*(const double scale, const Matrix& mat) {
@@ -103,14 +148,44 @@ std::ostream& operator<<(std::ostream& out, const Matrix& mat){
     return out;
 }
 
+void check(const bool condition, const std::string& name) {
+    if (condition) {
+        std::cout << "PASS: " << name << '\n';
+    }
+    else {
+        std::cout << "FAIL: " << name << '\n';
+    }
+}
+
+Matrix identity(int n) {
+    Matrix I{n,n};
+    for (int i{}; i < n; ++i) {
+        I(i,i) = 1.0;
+    }
+    return I;
+}
+
 int main() {
-    Matrix A(2, 2, {1, 2, 3, 4});
-    Matrix B(2, 2, {5, 6, 7, 8});
+    const Matrix a {2,2,{1,2,3,4}};
+    const Matrix b {2,2,{5,6,7,8}};
+    const Matrix diff {2,2,{4,4,4,4}};
+    const Matrix non_square {2,3,{1,2,3,4,5,6}};
+    const Matrix non_square_t {3,2,{1,4,2,5,3,6}};
 
-    std::cout << "A + B:\n" << A + B << '\n';
-    std::cout << "A * B:\n" << A * B << '\n';
-    std::cout << "A * 3:\n" << A * 3 << '\n';
-    std::cout << "A(0,1) = " << A(0, 1) << '\n';
+    check(a*identity(a.num_cols()) == a,"identity");
+    check(a + diff == b,"addition");
+    check(b - diff == a,"subtraction");
+    check(2*a == Matrix (2,2,{2,4,6,8}),"Multiplication");
+    check(a.transpose().transpose() == a,"a^T^T = a");
+    check(non_square.transpose() == non_square_t,"transpose non square");
+    check((a-b).transpose() == (-1*(b-a)).transpose(),"Mixed properties");
+    check(a * b == Matrix(2,2,{19,22,43,50}), "matrix multiplication");
 
-    return 0;
+    try {
+        Matrix c{a+non_square};
+        std::cout << "FAIL: did not catch mismatch dimension error!" << '\n';
+    }
+    catch (const std::exception& e){
+        std::cout << "PASS: threw length error for adding square and non-square matrix:\t" << e.what() <<'\n';
+    }
 }
