@@ -1,9 +1,5 @@
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.10)
 project(MatrixLib)
 
-set(CMAKE_CXX_STANDARD 20)
-
-add_executable(MatrixLib main.cpp
-        matrix.hpp
-        matrix.cpp)
-target_compile_options(MatrixLib PRIVATE -Wall -Wextra -Wpedantic)
+add_subdirectory(src)
+add_subdirectory(tests)

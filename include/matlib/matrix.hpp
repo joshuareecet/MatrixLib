@@ -9,6 +9,7 @@
 #include <initializer_list>
 #include <cmath>
 #include <ostream>
+#include <type_traits>
 
 namespace matlib {
     template <typename T>

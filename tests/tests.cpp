@@ -1,7 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "matrix.hpp"
-
+#include <matlib/matrix.hpp>
 void check(const bool condition, const std::string& name) {
     if (condition) {
         std::cout << "PASS: " << name << '\n';

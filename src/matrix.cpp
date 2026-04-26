@@ -2,7 +2,7 @@
 // Created by Joshua Thompson on 26/04/2026.
 //
 
-#include "matrix.hpp"
+#include <matlib/matrix.hpp>
 #include <iomanip>
 
 namespace matlib {
