@@ -3,4 +3,7 @@ project(MatrixLib)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(MatrixLib main.cpp)
+add_executable(MatrixLib main.cpp
+        matrix.hpp
+        matrix.cpp)
+target_compile_options(MatrixLib PRIVATE -Wall -Wextra -Wpedantic)
