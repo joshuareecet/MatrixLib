@@ -4,4 +4,4 @@ target_include_directories(matlib
         ${PROJECT_SOURCE_DIR}/include
 )
 target_compile_features(matlib PUBLIC cxx_std_20)
-target_compile_options(matlib PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_options(matlib PUBLIC -Wall -Wextra -Wpedantic)
