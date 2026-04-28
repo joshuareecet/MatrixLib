@@ -19,16 +19,28 @@ TEST_CASE("Matrix Class","[Matrix]") {
         REQUIRE(test_matrix.cols() == 3);
         REQUIRE(vec_m.rows() == 2);
         REQUIRE(vec_m.cols() == 2);
-    }
+    } // 4
 
     SECTION("Matrix exceptions") {
         const std::vector<double> vec {1,2,3,4};
-
-        REQUIRE_THROWS(matlib::Matrix {a + non_square_t});
-        REQUIRE_THROWS(matlib::Matrix (2,2,{1,2,3,4,5,6,7,8,9,10}));
-        REQUIRE_THROWS(matlib::Matrix (1,1,vec));
-        REQUIRE_THROWS(matlib::Matrix {a+non_square});
-    }
+        const matlib::Matrix A {1,1,{1}};
+        // sum of non-matching sized matrices
+        REQUIRE_THROWS_AS(matlib::Matrix {a + non_square_t},std::invalid_argument);
+        // difference between non-matching sized matrices
+        REQUIRE_THROWS_AS(matlib::Matrix {a - non_square_t},std::invalid_argument);
+        // init list larger than r*c
+        REQUIRE_THROWS_AS(matlib::Matrix (2,2,{1,2,3,4,5,6,7,8,9,10}),std::invalid_argument);
+        // vec larger than r*c
+        REQUIRE_THROWS_AS(matlib::Matrix (1,1,vec),std::invalid_argument);
+        // sum of matrix with mismatch dimensions
+        REQUIRE_THROWS_AS(matlib::Matrix {a+non_square},std::invalid_argument);
+        // Inf in matrix
+        REQUIRE_THROWS_AS(matlib::Matrix (1, 1, {std::numeric_limits<double>::infinity()}),std::invalid_argument);
+        // NaN in matrix
+        REQUIRE_THROWS_AS(matlib::Matrix (1,1,{std::numeric_limits<double>::quiet_NaN()}),std::invalid_argument);
+        // out of bounds index
+        REQUIRE_THROWS_AS(A(2,3),std::out_of_range);
+    } // 8
 
     SECTION("Matrix operations") {
         REQUIRE(a == matlib::Matrix {2,2,{1,2,3,4}});
@@ -41,5 +53,5 @@ TEST_CASE("Matrix Class","[Matrix]") {
         REQUIRE(a*2 == matlib::Matrix (2,2,{2,4,6,8}));
         REQUIRE(a * b == matlib::Matrix(2,2,{19,22,43,50}));
         REQUIRE((a-b).transpose() == (-1*(b-a)).transpose());
-    }
+    } // 10
 }
