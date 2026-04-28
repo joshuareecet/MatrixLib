@@ -10,10 +10,23 @@
 #include <cmath>
 #include <ostream>
 #include <type_traits>
+#include <limits>
 
 namespace matlib {
+    enum class Norm {
+        Frobenius,
+        L1,
+        LInf,
+    };
+
+    enum class MatrixType {
+        Symmetric,
+        UpperTriangular,
+        LowerTriangular
+    };
+
     template <typename T>
-    bool approx_equal(T a, T b, double acceptable_precision = 1e-13) {
+    bool approx_equal(T a, T b, double acceptable_precision = 64 * std::numeric_limits<T>::epsilon()) {
         static_assert(std::is_floating_point_v<T>, "approx_equal only accepts floating point types!");
 
         // If the numbers are extremely close to zero, we can assume that they are so close that it's a rounding error
@@ -34,10 +47,10 @@ namespace matlib {
         int rows_ {};
         int cols_ {};
         std::vector<double> mat;
-        double precision {1e-13};
+        double precision {64 * std::numeric_limits<double>::epsilon()};
 
     public:
-        Matrix (int r, int c, const std::initializer_list<double>& vals);
+        Matrix (int r, int c, const std::initializer_list<double>& values);
         Matrix (int r, int c);
         Matrix (int r, int c, const std::vector<double>& vec);
 
@@ -57,7 +70,7 @@ namespace matlib {
     };
 
     // free function, allows for multiplying double with mat
-    Matrix operator*(const double scale, const Matrix& b);
+    Matrix operator*(double scale, const Matrix& b);
     // generates identity matrix nxn
     Matrix identity(int n);
     // allows for outputting matrix to a stream
