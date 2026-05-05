@@ -9,7 +9,48 @@ const matlib::Matrix diff {2,2,{4,4,4,4}};
 const matlib::Matrix non_square {2,3,{1,2,3,4,5,6}};
 const matlib::Matrix non_square_t {3,2,{1,4,2,5,3,6}};
 
+TEST_CASE("Move vs Copy performance", "[performance]") {
+    const int size = 1000;
+    matlib::Matrix big(size, size);
+
+    // fill with some data
+    for (int i = 0; i < size; ++i)
+        for (int j = 0; j < size; ++j)
+            big(i, j) = i * size + j;
+
+    // time copy
+    auto copy_start = std::chrono::high_resolution_clock::now();
+    matlib::Matrix copied = big;
+    auto copy_end = std::chrono::high_resolution_clock::now();
+
+    // time move
+    auto move_start = std::chrono::high_resolution_clock::now();
+    matlib::Matrix moved = std::move(big);
+    auto move_end = std::chrono::high_resolution_clock::now();
+
+    auto copy_time = std::chrono::duration_cast<std::chrono::microseconds>(copy_end - copy_start).count();
+    auto move_time = std::chrono::duration_cast<std::chrono::microseconds>(move_end - move_start).count();
+
+    std::cout << "Copy: " << copy_time << " us\n";
+    std::cout << "Move: " << move_time << " us\n";
+
+    // move should be dramatically faster
+    REQUIRE(move_time < copy_time);
+
+    // verify moved-from state
+    REQUIRE(big.rows() == 0);
+    REQUIRE(big.cols() == 0);
+    REQUIRE(big.size() == 0);
+
+    // verify moved-to has the data
+    REQUIRE(moved.rows() == size);
+    REQUIRE(moved.cols() == size);
+}
+
 TEST_CASE("Matrix Class","[Matrix]") {
+    static_assert(std::is_nothrow_move_constructible_v<matlib::Matrix>);
+    static_assert(std::is_nothrow_move_assignable_v<matlib::Matrix>);
+
     SECTION("Matrix initialisation") {
         matlib::Matrix test_matrix {2,3,{1,2,3,4,5,6}};
         std::vector<double> vec {1e6,2e6,3e6,4e6};

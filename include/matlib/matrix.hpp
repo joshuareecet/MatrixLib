@@ -54,6 +54,17 @@ namespace matlib {
         Matrix (int r, int c);
         Matrix (int r, int c, const std::vector<double>& vec);
 
+        // move constructor
+        Matrix (Matrix&& b) noexcept;
+        // move assignment
+        Matrix& operator=(Matrix&& b) noexcept;
+        // copy constructor
+        Matrix (const Matrix& b);
+        //copy assignment
+        Matrix& operator=(const Matrix& b);
+        // destructor
+        ~Matrix() = default;
+
         [[nodiscard]] std::size_t size() const;
         [[nodiscard]] int rows() const;
         [[nodiscard]] int cols() const;

@@ -57,6 +57,40 @@ namespace matlib {
         mat.resize(r*c,0);
     }
 
+    // copy constructor
+    Matrix::Matrix(const Matrix& b)
+        : rows_{b.rows_}, cols_{b.cols_}, mat{b.mat}
+    {}
+    // copy assignment constructor
+    Matrix& Matrix::operator=(const Matrix& b) {
+        // check if memory address is equal first
+        if (this == &b) return *this;
+
+        rows_ = b.rows_;
+        cols_ = b.cols_;
+        mat = b.mat;
+        return *this;
+    }
+
+    // move assignment constructor
+    Matrix::Matrix(Matrix&& b) noexcept
+        : rows_ {b.rows_}, cols_{b.cols_}, mat{std::move(b.mat)}
+    {
+        b.rows_ = 0;
+        b.cols_ = 0;
+    }
+
+    // move assignment
+    Matrix& Matrix::operator=(Matrix&& b) noexcept {
+        rows_ = b.rows_;
+        cols_ = b.cols_;
+        mat = std::move(b.mat);
+        b.rows_ = 0;
+        b.cols_ = 0;
+        b.mat = {};
+        return *this;
+    }
+
     //general purpose functions -----------------------------------
     [[nodiscard]] std::size_t Matrix::size() const{return mat.size(); }
     [[nodiscard]] int Matrix::rows() const {return rows_;}
@@ -154,7 +188,6 @@ namespace matlib {
         }
         return result;
     }
-
 
     std::ostream& operator<<(std::ostream& out, const Matrix& mat){
         for (int i {}; i < mat.rows_; ++i) {
