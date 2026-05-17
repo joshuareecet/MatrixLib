@@ -9,6 +9,22 @@ const matlib::Matrix diff {2,2,{4,4,4,4}};
 const matlib::Matrix non_square {2,3,{1,2,3,4,5,6}};
 const matlib::Matrix non_square_t {3,2,{1,4,2,5,3,6}};
 
+TEST_CASE("Array determinant") {
+    constexpr std::array<double, 4> m = {1.0, 2.0, 3.0, 4.0};
+    REQUIRE(matlib::det2x2(m) == -2.0);
+    static_assert(matlib::det2x2(m) == -2.0, "compile-time det2x2 failed");
+}
+
+TEST_CASE("Read Only Matrix", "[Matrix]") {
+    const matlib::Matrix a {2,2,{1,2,3,4}};
+    REQUIRE(a.rows() == 2);
+    REQUIRE(a.cols() == 2);
+    REQUIRE(a(0,0) == 1.0);
+    REQUIRE((a + a)(0,0) == 2.0);
+    REQUIRE((2 * a)(0,0) == 2.0);
+    REQUIRE(a == a);
+}
+
 TEST_CASE("Move vs Copy performance", "[performance]") {
     const int size = 1000;
     matlib::Matrix big(size, size);
@@ -28,14 +44,14 @@ TEST_CASE("Move vs Copy performance", "[performance]") {
     matlib::Matrix moved = std::move(big);
     auto move_end = std::chrono::high_resolution_clock::now();
 
-    auto copy_time = std::chrono::duration_cast<std::chrono::microseconds>(copy_end - copy_start).count();
-    auto move_time = std::chrono::duration_cast<std::chrono::microseconds>(move_end - move_start).count();
+    auto copy_time = std::chrono::duration_cast<std::chrono::nanoseconds>(copy_end - copy_start).count();
+    auto move_time = std::chrono::duration_cast<std::chrono::nanoseconds>(move_end - move_start).count();
 
-    std::cout << "Copy: " << copy_time << " us\n";
-    std::cout << "Move: " << move_time << " us\n";
+    std::cout << "Copy: " << copy_time << " ns\n";
+    std::cout << "Move: " << move_time << " ns\n";
 
     // move should be dramatically faster
-    REQUIRE(move_time < copy_time);
+    REQUIRE(move_time*100 < copy_time);
 
     // verify moved-from state
     REQUIRE(big.rows() == 0);

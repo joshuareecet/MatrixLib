@@ -6,6 +6,7 @@
 #define MATRIXLIB_MATRIX_HPP
 
 #include <vector>
+#include <array>
 #include <initializer_list>
 #include <cmath>
 #include <ostream>
@@ -47,7 +48,6 @@ namespace matlib {
         int rows_ {};
         int cols_ {};
         std::vector<double> mat;
-        double precision {64 * std::numeric_limits<double>::epsilon()};
 
     public:
         Matrix (int r, int c, const std::initializer_list<double>& values);
@@ -66,8 +66,9 @@ namespace matlib {
         ~Matrix() = default;
 
         [[nodiscard]] std::size_t size() const;
-        [[nodiscard]] int rows() const;
-        [[nodiscard]] int cols() const;
+        [[nodiscard]] constexpr int rows() const {return rows_;}
+        [[nodiscard]] constexpr int cols() const {return cols_;}
+
         const double& operator()(int r,int c) const;
         double& operator()(int r, int c);
 
@@ -86,5 +87,7 @@ namespace matlib {
     Matrix identity(int n);
     // allows for outputting matrix to a stream
     std::ostream& operator<<(std::ostream& out, const Matrix& mat);
+    constexpr double det2x2(const std::array<double, 4>& A) {return (A[0]*A[3])-(A[1]*A[2]);}
+
 }
 #endif //MATRIXLIB_MATRIX_HPP

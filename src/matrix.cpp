@@ -61,7 +61,7 @@ namespace matlib {
     Matrix::Matrix(const Matrix& b)
         : rows_{b.rows_}, cols_{b.cols_}, mat{b.mat}
     {}
-    // copy assignment constructor
+    // copy assignment
     Matrix& Matrix::operator=(const Matrix& b) {
         // check if memory address is equal first
         if (this == &b) return *this;
@@ -72,7 +72,7 @@ namespace matlib {
         return *this;
     }
 
-    // move assignment constructor
+    // move constructor
     Matrix::Matrix(Matrix&& b) noexcept
         : rows_ {b.rows_}, cols_{b.cols_}, mat{std::move(b.mat)}
     {
@@ -82,20 +82,16 @@ namespace matlib {
 
     // move assignment
     Matrix& Matrix::operator=(Matrix&& b) noexcept {
+        if (this == &b) return *this;
         rows_ = b.rows_;
         cols_ = b.cols_;
         mat = std::move(b.mat);
         b.rows_ = 0;
         b.cols_ = 0;
-        b.mat = {};
         return *this;
     }
 
-    //general purpose functions -----------------------------------
     [[nodiscard]] std::size_t Matrix::size() const{return mat.size(); }
-    [[nodiscard]] int Matrix::rows() const {return rows_;}
-    [[nodiscard]] int Matrix::cols() const {return cols_; }
-
 
     // const indexing, allows indexing const matrices
     const double& Matrix::operator()(const int r,const int c) const{
@@ -200,7 +196,7 @@ namespace matlib {
         return out;
     }
 
-    Matrix identity(int n) {
+    Matrix identity(const int n) {
         Matrix I{n,n};
         for (int i{}; i < n; ++i) {
             I(i,i) = 1.0;
