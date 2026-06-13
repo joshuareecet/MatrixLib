@@ -65,6 +65,11 @@ namespace matlib {
         // destructor
         ~Matrix() = default;
 
+        auto begin() { return mat.begin(); }
+        auto end() { return mat.end(); }
+        auto begin() const { return mat.begin(); }
+        auto end() const { return mat.end(); }
+
         [[nodiscard]] std::size_t size() const;
         [[nodiscard]] constexpr int rows() const {return rows_;}
         [[nodiscard]] constexpr int cols() const {return cols_;}
@@ -80,11 +85,18 @@ namespace matlib {
         [[nodiscard]] Matrix transpose() const;
         friend std::ostream& operator<<(std::ostream& out, const Matrix& mat);
     };
-
+        
     // free function, allows for multiplying double with mat
     Matrix operator*(double scale, const Matrix& b);
+    
     // generates identity matrix nxn
-    Matrix identity(int n);
+    Matrix identity(const int n);
+    
+    //Generates matrix of zeros
+    Matrix zeros(const int n);
+    Matrix zeros(const int rows, const int cols);
+
+
     // allows for outputting matrix to a stream
     std::ostream& operator<<(std::ostream& out, const Matrix& mat);
     constexpr double det2x2(const std::array<double, 4>& A) {return (A[0]*A[3])-(A[1]*A[2]);}

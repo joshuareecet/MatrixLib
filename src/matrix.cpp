@@ -26,11 +26,11 @@ namespace {
                 throw std::invalid_argument("ERROR: Matrix data contains NaN or Inf values!");
             }
         }
-    }
+    } 
 }
 
 namespace matlib {
-    //Matrix initializers
+    //Matrix Constructors
 
     // construct by r, c, and initialiser list
     Matrix::Matrix(const int r, const int c, const std::initializer_list<double>& values)
@@ -165,7 +165,7 @@ namespace matlib {
             return false;
         }
         for (int i{}; i < static_cast<int>(size()); ++i) {
-            if (!approx_equal(mat[i],b.mat[i],precision)) {
+            if (!approx_equal(mat[i],b.mat[i])) {
                 return false;
             }
         }
@@ -184,7 +184,7 @@ namespace matlib {
         }
         return result;
     }
-
+    
     std::ostream& operator<<(std::ostream& out, const Matrix& mat){
         for (int i {}; i < mat.rows_; ++i) {
             for (int j{}; j< mat.cols_; ++j) {
@@ -197,10 +197,18 @@ namespace matlib {
     }
 
     Matrix identity(const int n) {
-        Matrix I{n,n};
+        Matrix I(n,n);
         for (int i{}; i < n; ++i) {
             I(i,i) = 1.0;
         }
         return I;
     }
-}
+
+    Matrix zeros(const int rows, const int cols) {
+        return Matrix(rows, cols);
+    }
+    Matrix zeros(const int n) {
+        return Matrix(n,n);
+    }
+
+}   

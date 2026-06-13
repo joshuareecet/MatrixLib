@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <iomanip>
 #include <matlib/matrix.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -16,13 +17,28 @@ TEST_CASE("Array determinant") {
 }
 
 TEST_CASE("Read Only Matrix", "[Matrix]") {
-    const matlib::Matrix a {2,2,{1,2,3,4}};
-    REQUIRE(a.rows() == 2);
-    REQUIRE(a.cols() == 2);
-    REQUIRE(a(0,0) == 1.0);
-    REQUIRE((a + a)(0,0) == 2.0);
-    REQUIRE((2 * a)(0,0) == 2.0);
-    REQUIRE(a == a);
+    const matlib::Matrix const_mat {2,2,{1,2,3,4}};
+    REQUIRE(const_mat.rows() == 2);
+    REQUIRE(const_mat.cols() == 2);
+    REQUIRE(const_mat(0,0) == 1.0);
+    REQUIRE((const_mat + const_mat)(0,0) == 2.0);
+    REQUIRE((2 * const_mat)(0,0) == 2.0);
+    REQUIRE(const_mat == const_mat);
+}
+
+TEST_CASE("Matrix free functions", "[Matrix]") {
+    // identity matrix
+    const matlib::Matrix m {matlib::identity(5)};
+    REQUIRE(m.rows() == m.cols());
+    REQUIRE(m(3,3) == 1);
+    
+    //zeros matrix
+    const matlib::Matrix z{ matlib::zeros(2,3) };
+    const matlib::Matrix z_sq{ matlib::zeros(2) };
+    REQUIRE(z.rows() != z.cols());
+    REQUIRE(z_sq.rows() == z_sq.cols());
+    REQUIRE(std::all_of(z.begin(), z.end(), [](auto x) {return x == 0; }));
+    REQUIRE(std::all_of(z_sq.begin(), z_sq.end(), [](auto x) {return x == 0; }));
 }
 
 TEST_CASE("Move vs Copy performance", "[performance]") {
