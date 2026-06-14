@@ -5,6 +5,7 @@
 #include <matlib/matrix.hpp>
 #include <iomanip>
 #include <limits>
+#include <numeric>
 
 static_assert(sizeof(double) == 8, "double must be 8 bytes");
 
@@ -159,6 +160,47 @@ namespace matlib {
         return result;
     }
 
+    // matrix norm
+    [[nodiscard]] double Matrix::norm(Norm type) const {
+        if (this->mat.empty()) throw std::invalid_argument("ERROR: Matrix must have size > 0 to calculate norm!");
+
+        switch (type) {
+            case Norm::Frobenius:
+            {
+                // lambda to accumulate sum of squared elements
+                auto accumulate_square{
+                    [](double sum, double curr) {
+                        return (sum + (curr * curr));
+                    }
+                };
+                return std::sqrt(std::accumulate(this->begin(), this->end(), 0.0, accumulate_square));
+            }
+            
+            case Norm::L1:
+            {
+                std::vector<double> col_sums(this->cols(), 0.0);
+                for (int x{}; x < this->rows_; ++x) {
+                    for (int y{}; y < this->cols_; ++y) {
+                        col_sums[y] += std::abs((*this)(x, y));
+                    }
+                }
+                return *std::max_element(col_sums.begin(), col_sums.end());
+            }
+
+            case Norm::LInf:
+            {
+                std::vector<double> row_sums(this->rows_, 0.0);
+                for (int x{}; x < this->rows_; ++x) {
+                    for (int y{}; y < this->cols_; ++y) {
+                        row_sums[x] += std::abs((*this)(x, y));
+                    }
+                }
+                return *std::max_element(row_sums.begin(), row_sums.end());
+            }
+            default:
+            throw std::invalid_argument("ERROR: Passed an invalid norm type!");
+        }
+    }
 
     bool Matrix::operator==(const Matrix& b) const {
         if ((b.rows_ != rows_) || (b.cols_ != cols_)) {
@@ -210,5 +252,6 @@ namespace matlib {
     Matrix zeros(const int n) {
         return Matrix(n,n);
     }
+
 
 }   

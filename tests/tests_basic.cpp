@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <matlib/matrix.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -24,21 +25,6 @@ TEST_CASE("Read Only Matrix", "[Matrix]") {
     REQUIRE((const_mat + const_mat)(0,0) == 2.0);
     REQUIRE((2 * const_mat)(0,0) == 2.0);
     REQUIRE(const_mat == const_mat);
-}
-
-TEST_CASE("Matrix free functions", "[Matrix]") {
-    // identity matrix
-    const matlib::Matrix m {matlib::identity(5)};
-    REQUIRE(m.rows() == m.cols());
-    REQUIRE(m(3,3) == 1);
-    
-    //zeros matrix
-    const matlib::Matrix z{ matlib::zeros(2,3) };
-    const matlib::Matrix z_sq{ matlib::zeros(2) };
-    REQUIRE(z.rows() != z.cols());
-    REQUIRE(z_sq.rows() == z_sq.cols());
-    REQUIRE(std::all_of(z.begin(), z.end(), [](auto x) {return x == 0; }));
-    REQUIRE(std::all_of(z_sq.begin(), z_sq.end(), [](auto x) {return x == 0; }));
 }
 
 TEST_CASE("Move vs Copy performance", "[performance]") {
@@ -71,21 +57,21 @@ TEST_CASE("Move vs Copy performance", "[performance]") {
 
     // verify moved-from state
     REQUIRE(big.rows() == 0);
-    REQUIRE(big.cols() == 0);
-    REQUIRE(big.size() == 0);
+    REQUIRE(big.cols() == 0); 
+    REQUIRE(big.size() == 0); 
 
     // verify moved-to has the data
     REQUIRE(moved.rows() == size);
     REQUIRE(moved.cols() == size);
 }
 
-TEST_CASE("Matrix Class","[Matrix]") {
+TEST_CASE("Matrix Class Basics","[Matrix]") {
     static_assert(std::is_nothrow_move_constructible_v<matlib::Matrix>);
     static_assert(std::is_nothrow_move_assignable_v<matlib::Matrix>);
 
     SECTION("Matrix initialisation") {
         matlib::Matrix test_matrix {2,3,{1,2,3,4,5,6}};
-        std::vector<double> vec {1e6,2e6,3e6,4e6};
+        std::vector<double> vec {1e6,2e6,3e6,4e6}; 
         matlib::Matrix vec_m {2,2,vec};
 
         REQUIRE(test_matrix.rows() == 2);
@@ -114,17 +100,45 @@ TEST_CASE("Matrix Class","[Matrix]") {
         // out of bounds index
         REQUIRE_THROWS_AS(A(2,3),std::out_of_range);
     } // 8
+}
 
-    SECTION("Matrix operations") {
-        REQUIRE(a == matlib::Matrix {2,2,{1,2,3,4}});
-        REQUIRE(a-a == matlib::Matrix {2,2,{0,0,0,0}});
-        REQUIRE(a + matlib::Matrix{2,2,{0,0,0,0}} == a);
-        REQUIRE(a+diff==b);
-        REQUIRE(b-diff==a);
-        REQUIRE(a*matlib::identity(a.cols()) == a);
-        REQUIRE(2*a == matlib::Matrix (2,2,{2,4,6,8}));
-        REQUIRE(a*2 == matlib::Matrix (2,2,{2,4,6,8}));
-        REQUIRE(a * b == matlib::Matrix(2,2,{19,22,43,50}));
-        REQUIRE((a-b).transpose() == (-1*(b-a)).transpose());
-    } // 10
+TEST_CASE("Matrix standard operations") {
+    REQUIRE(a == matlib::Matrix {2,2,{1,2,3,4}});
+    REQUIRE(a-a == matlib::Matrix {2,2,{0,0,0,0}});
+    REQUIRE(a + matlib::Matrix{2,2,{0,0,0,0}} == a);
+    REQUIRE(a+diff==b);
+    REQUIRE(b-diff==a);
+    REQUIRE(a*matlib::identity(a.cols()) == a);
+    REQUIRE(2*a == matlib::Matrix (2,2,{2,4,6,8}));
+    REQUIRE(a*2 == matlib::Matrix (2,2,{2,4,6,8}));
+    REQUIRE(a * b == matlib::Matrix(2,2,{19,22,43,50}));
+    REQUIRE((a-b).transpose() == (-1*(b-a)).transpose());
+} // 10
+
+TEST_CASE("Matrix free functions", "[Matrix]") {
+    // identity matrix
+    const matlib::Matrix m{ matlib::identity(5) };
+    REQUIRE(m.rows() == m.cols());
+    REQUIRE(m(3, 3) == 1);
+
+    //zeros matrix
+    const matlib::Matrix z{ matlib::zeros(2,3) };
+    const matlib::Matrix z_sq{ matlib::zeros(2) };
+    REQUIRE(z.rows() != z.cols());
+    REQUIRE(z_sq.rows() == z_sq.cols());
+    REQUIRE(std::all_of(z.begin(), z.end(), [](auto x) {return x == 0; }));
+    REQUIRE(std::all_of(z_sq.begin(), z_sq.end(), [](auto x) {return x == 0; }));
+}
+
+TEST_CASE("Matrix norm operations") {
+    using matlib::Norm;
+    const matlib::Matrix norm_test{ 2,2,{-1,4,-5,-20} };
+    double hand_calculated_frob_norm{ std::sqrt((1.0)+(4*4)+(5*5)+(20*20)) };
+    double hand_calculated_L1_norm{ 24 };
+    double hand_calculated_Linf_norm{ 25 };
+
+    REQUIRE(matlib::approx_equal(2 * norm_test.norm(), (norm_test + norm_test).norm()));
+    REQUIRE(matlib::approx_equal(norm_test.norm(Norm::Frobenius), hand_calculated_frob_norm));
+    REQUIRE(matlib::approx_equal(norm_test.norm(Norm::L1), hand_calculated_L1_norm));
+    REQUIRE(matlib::approx_equal(norm_test.norm(Norm::LInf), hand_calculated_Linf_norm));
 }

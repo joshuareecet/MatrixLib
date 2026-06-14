@@ -27,11 +27,11 @@ namespace matlib {
     };
 
     template <typename T>
-    bool approx_equal(T a, T b, double acceptable_precision = 64 * std::numeric_limits<T>::epsilon()) {
+    bool approx_equal(T a, T b, T acceptable_precision = 64 * std::numeric_limits<T>::epsilon()) {
         static_assert(std::is_floating_point_v<T>, "approx_equal only accepts floating point types!");
 
         // If the numbers are extremely close to zero, we can assume that they are so close that it's a rounding error
-        if ((std::abs(a) < acceptable_precision) && (std::abs(b) < acceptable_precision)) {
+        if ((std::abs(a) < acceptable_precision) && (std::abs(b) < 2*acceptable_precision)) {
             return true;
         }
 
@@ -82,6 +82,9 @@ namespace matlib {
         [[nodiscard]] Matrix operator*(double scale) const;
         [[nodiscard]] Matrix operator*(const Matrix& b) const;
         [[nodiscard]] bool operator==(const Matrix& b) const;
+        
+        [[nodiscard]] double norm(Norm type = Norm::Frobenius) const;
+        
         [[nodiscard]] Matrix transpose() const;
         friend std::ostream& operator<<(std::ostream& out, const Matrix& mat);
     };
@@ -100,6 +103,5 @@ namespace matlib {
     // allows for outputting matrix to a stream
     std::ostream& operator<<(std::ostream& out, const Matrix& mat);
     constexpr double det2x2(const std::array<double, 4>& A) {return (A[0]*A[3])-(A[1]*A[2]);}
-
 }
 #endif //MATRIXLIB_MATRIX_HPP
