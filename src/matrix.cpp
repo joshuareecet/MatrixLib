@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <limits>
 #include <numeric>
+#include <algorithm>
 
 static_assert(sizeof(double) == 8, "double must be 8 bytes");
 
@@ -131,8 +132,17 @@ namespace matlib {
         }
         return result;
     }
-    // scalar multiply
+    [[nodiscard]] Matrix Matrix::operator-() const {
+        // unary minus, returns the negative of a matrix
+        Matrix res((*this));
+        for (auto& val : res) {
+            val = -val;
+        }
+        return res;
+    }
+
     [[nodiscard]] Matrix Matrix::operator*(const double scale) const {
+        // scalar multiply
         Matrix result(rows_,cols_);
         for (int i{};i < static_cast<int>(size());++i) {
             result.mat[i] = mat[i] * scale;
@@ -158,6 +168,86 @@ namespace matlib {
             }
         }
         return result;
+    }
+    
+    Matrix Matrix::operator/(const double divisor) const {
+        if (divisor == 0) {
+            throw std::invalid_argument("ERROR: division by zero!");
+        }
+        
+        Matrix res((*this));
+        for (auto& val : res) {
+            val /= divisor;
+        }
+        return res;
+    }
+
+    void Matrix::apply(std::function<double(double)> func) {
+        std::transform(this->begin(), this->end(),this->begin(), func);
+    }
+
+    bool Matrix::operator==(const Matrix& b) const {
+        if ((b.rows_ != rows_) || (b.cols_ != cols_)) {
+            return false;
+        }
+        for (int i{}; i < static_cast<int>(size()); ++i) {
+            if (!approx_equal(mat[i], b.mat[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    Matrix Matrix::column(int column_index) const {
+        
+        if (column_index >= this->cols_ || column_index < 0) {
+            throw std::invalid_argument("ERROR: invalid column index");
+        }
+
+        Matrix res(this->rows_,1);
+        for (int row{}; row < this->rows_; ++row) {
+            res(row, 0) = (*this)(row, column_index);
+        }
+        return res;
+    }
+
+    void Matrix::set_column(const std::vector<double>& B, int column){
+        if (column >= this->cols_ || column < 0) throw std::invalid_argument("ERROR: Column index out of range!");
+        if (static_cast<int>(B.size()) != this->rows_) throw std::invalid_argument("ERROR: vector length does not match matrix column size!");
+        
+        for (int row{}; row < this->rows_; ++row) {
+            (*this)(row, column) = B[row];
+        }
+    }
+
+    void Matrix::set_column(const Matrix& B, int column){
+        if (column >= this->cols_ || column < 0) throw std::invalid_argument("ERROR: Column index out of range!");
+        if (B.rows() != this->rows_ || B.cols() != 1) throw std::invalid_argument("ERROR: invalid Matrix B size!");
+        
+        for (int row{}; row < this->rows_; ++row) {
+            (*this)(row, column) = B(row,0);
+        }
+    }
+
+    Matrix Matrix::submatrix(int row_start, int col_start, int rows, int cols) const {
+        // rows is width of matrix, row_start is index (zero-indexed), same for cols.
+
+        if (row_start < 0 || col_start < 0 || rows < 0 || cols < 0) {
+            throw std::invalid_argument("ERROR: indexes must be positive!");
+        }
+        if (row_start + rows > this->rows_ || col_start + cols > this->cols_) {
+            throw std::invalid_argument("ERROR: index out of bounds!");
+        }
+        
+        Matrix res(rows,cols);
+        
+        for (int col{ col_start }; col < col_start + cols; ++col) {
+            for (int row{ row_start }; row < row_start + rows; ++row) {
+                res(row-row_start, col-col_start) = (*this)(row, col);
+            }
+        }
+        return res;
     }
 
     // matrix norm
@@ -200,19 +290,6 @@ namespace matlib {
             default:
             throw std::invalid_argument("ERROR: Passed an invalid norm type!");
         }
-    }
-
-    bool Matrix::operator==(const Matrix& b) const {
-        if ((b.rows_ != rows_) || (b.cols_ != cols_)) {
-            return false;
-        }
-        for (int i{}; i < static_cast<int>(size()); ++i) {
-            if (!approx_equal(mat[i],b.mat[i])) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     // transpose

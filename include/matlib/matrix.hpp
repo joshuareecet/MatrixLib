@@ -12,6 +12,7 @@
 #include <ostream>
 #include <type_traits>
 #include <limits>
+#include <functional>
 
 namespace matlib {
     enum class Norm {
@@ -79,12 +80,20 @@ namespace matlib {
 
         [[nodiscard]] Matrix operator+(const Matrix& b) const;
         [[nodiscard]] Matrix operator-(const Matrix& b) const;
+        [[nodiscard]] Matrix operator-() const;
         [[nodiscard]] Matrix operator*(double scale) const;
         [[nodiscard]] Matrix operator*(const Matrix& b) const;
+        Matrix operator/(const double divisor) const;
         [[nodiscard]] bool operator==(const Matrix& b) const;
-        
+        void apply(std::function<double(double)> transformation);
+
+        Matrix column(int i) const;
+        void set_column(const Matrix& B, int column);
+        void set_column(const std::vector<double>& B, int column);
+
+        Matrix submatrix(int row_start, int col_start, int rows, int cols) const;
+
         [[nodiscard]] double norm(Norm type = Norm::Frobenius) const;
-        
         [[nodiscard]] Matrix transpose() const;
         friend std::ostream& operator<<(std::ostream& out, const Matrix& mat);
     };
