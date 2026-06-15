@@ -45,6 +45,10 @@ namespace matlib {
     }
 
     class Matrix {
+    public:
+        using iterator = std::vector<double>::iterator;
+        using const_iterator = std::vector<double>::const_iterator;
+
     private:
         int rows_ {};
         int cols_ {};
@@ -66,10 +70,41 @@ namespace matlib {
         // destructor
         ~Matrix() = default;
 
-        auto begin() { return mat.begin(); }
-        auto end() { return mat.end(); }
-        auto begin() const { return mat.begin(); }
-        auto end() const { return mat.end(); }
+        iterator begin() { return mat.begin(); }
+        iterator end() { return mat.end(); }
+        const_iterator begin() const { return mat.begin(); }
+        const_iterator end() const { return mat.end(); }
+
+        const_iterator cbegin() const { return mat.cbegin(); }
+        const_iterator cend() const { return mat.cend(); }
+
+        double* data() { return mat.data(); }
+        const double* data() const { return mat.data(); }
+
+        double* row_begin(int i) {
+            if (i < 0 || i >= rows_) {
+                throw std::out_of_range("ERROR: Row index out of range!");
+            }
+            return data() + i * cols_;
+        }
+        double* row_end(int i) {
+            if (i < 0 || i >= rows_) {
+                throw std::out_of_range("ERROR: Row index out of range!");
+            }
+            return data() + (i + 1) * cols_;
+        }
+        const double* row_begin(int i) const {
+            if (i < 0 || i >= rows_) {
+                throw std::out_of_range("ERROR: Row index out of range!");
+            }
+            return data() + i * cols_;
+        }
+        const double* row_end(int i) const {
+            if (i < 0 || i >= rows_) {
+                throw std::out_of_range("ERROR: Row index out of range!");
+            }
+            return data() + (i + 1) * cols_;
+        }
 
         [[nodiscard]] std::size_t size() const;
         [[nodiscard]] constexpr int rows() const {return rows_;}

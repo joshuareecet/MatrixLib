@@ -7,7 +7,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests tests_basic.cpp)
+add_executable(tests
+    test_construction.cpp
+    test_arithmetic.cpp
+    test_norm.cpp
+    test_utility.cpp
+    test_misc.cpp
+    test_iterators.cpp
+)
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 target_link_libraries(tests PRIVATE matlib)

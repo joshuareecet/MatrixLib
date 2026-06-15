@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <matlib/matrix.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <chrono>
 
 const matlib::Matrix a {2,2,{1,2,3,4}};
 const matlib::Matrix b {2,2,{5,6,7,8}};
